@@ -166,14 +166,14 @@ export function ProductCatalog() {
                                             <ChevronRight className="ml-1 w-4 h-4" />
                                         </Link>
                                         {product.pdf_manual_url && (
-                                            <Link
-                                                href={product.pdf_manual_url}
+                                            <a
+                                                href={`/api/download/pdf?url=${encodeURIComponent(product.pdf_manual_url)}`}
                                                 className="p-2.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all border border-slate-100 hover:border-primary/10 shadow-sm"
                                                 title={t('technicalSpecs')}
                                                 target="_blank" rel="noopener noreferrer"
                                             >
                                                 <Download className="w-4 h-4" />
-                                            </Link>
+                                            </a>
                                         )}
                                     </div>
                                 </div>
