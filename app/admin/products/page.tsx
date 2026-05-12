@@ -57,7 +57,9 @@ const defaultFormData = {
     description: "",
     specs_json: {} as any,
     certifications: [] as string[],
-    image_file: null as File | null
+    image_file: null as File | null,
+    pdf_manual_url: "",
+    pdf_file: null as File | null
 };
 
 export default function AdminProductsPage() {
@@ -121,6 +123,19 @@ export default function AdminProductsPage() {
                 finalImageUrl = resData.url;
             }
 
+            let finalPdfUrl = formData.pdf_manual_url;
+            if (formData.pdf_file) {
+                const pdfFormData = new FormData();
+                pdfFormData.append("file", formData.pdf_file);
+                const pdfResponse = await fetch("/api/upload", {
+                    method: "POST",
+                    body: pdfFormData,
+                });
+                if (!pdfResponse.ok) throw new Error("Failed to upload PDF");
+                const pdfResData = await pdfResponse.json();
+                finalPdfUrl = pdfResData.url;
+            }
+
             // Auto-generate slug from name
             const generatedSlug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -130,6 +145,7 @@ export default function AdminProductsPage() {
                 image_url: finalImageUrl,
                 certifications: formData.certifications,
                 specs_json: { ...formData.specs_json, description: formData.description },
+                pdf_manual_url: finalPdfUrl,
                 price_sgd: 0 // Default price to satisfy database constraint
             };
 
@@ -249,6 +265,18 @@ export default function AdminProductsPage() {
                                     />
                                     {formData.image_url && !formData.image_file && (
                                         <p className="text-xs text-slate-500 mt-1">Leave empty to keep current image</p>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Manual PDF Upload</Label>
+                                    <Input
+                                        type="file"
+                                        accept=".pdf"
+                                        onChange={e => setFormData({ ...formData, pdf_file: e.target.files?.[0] || null })}
+                                        className="rounded-none border-slate-200 file:bg-blue-50 file:text-blue-700 file:border-0 file:rounded-md file:px-4 file:py-1 file:mr-4 file:font-semibold hover:file:bg-blue-100 cursor-pointer"
+                                    />
+                                    {formData.pdf_manual_url && !formData.pdf_file && (
+                                        <p className="text-xs text-slate-500 mt-1">Leave empty to keep current PDF</p>
                                     )}
                                 </div>
                                 <div className="space-y-3">
@@ -466,11 +494,13 @@ export default function AdminProductsPage() {
                                                 setEditingId(product.id);
                                                 setFormData({
                                                     name: product.name,
-                                                    image_url: product.image_url || "",
                                                     description: product.specs_json?.description || product.specs_json?.Description || "",
                                                     specs_json: product.specs_json || {},
                                                     certifications: product.certifications || [],
-                                                    image_file: null
+                                                    image_url: product.image_url || "",
+                                                    pdf_manual_url: product.pdf_manual_url || "",
+                                                    image_file: null,
+                                                    pdf_file: null
                                                 });
                                                 setIsDialogOpen(true);
                                             }}>
